@@ -8,12 +8,14 @@ const authMiddleware = require("../middleware/authMiddleware");
 const {
   fillWorkExperience,
   deleteWorkExperience,
-  getWorkExperience,
+  getWorkExperiences,
+  updateWorkExperience,
 } = require("../controllers/freelancers/workExperienceController");
 const {
   fillEducation,
   deleteEducation,
   updateEducation,
+  getEducation,
 } = require("../controllers/freelancers/educationController");
 
 const router = express.Router();
@@ -29,42 +31,55 @@ router.get(
   authMiddleware(["employer", "freelancer", "admin", "superadmin"]),
   getFullFreelancerInfo
 );
+
 router.patch(
   "/",
   authMiddleware(["freelancer", "admin", "superadmin"]),
   fillInfoFreelancer
 );
+
 // EDUCATION
+router.get(
+  "/educations/:id",
+  // authMiddleware(["freelancer", "admin", "superadmin"]),
+  getEducation
+);
 router.post(
-  "/education",
+  "/educations",
   authMiddleware(["freelancer", "admin", "superadmin"]),
   fillEducation
 );
 router.delete(
-  "/education",
+  "/educations/:id",
   authMiddleware(["freelancer", "admin", "superadmin"]),
   deleteEducation
 );
 router.patch(
-  "/education",
+  "/educations",
   authMiddleware(["freelancer", "admin", "superadmin"]),
   updateEducation
 );
 // WORK EXPERIENCE
+
 router.post(
   "/work-experience",
   authMiddleware(["freelancer", "admin", "superadmin"]),
   fillWorkExperience
 );
 router.delete(
-  "/work-experience",
+  "/work-experience/:id",
   authMiddleware(["freelancer", "admin", "superadmin"]),
   deleteWorkExperience
+);
+router.patch(
+  "/work-experience/:id",
+  authMiddleware(["freelancer", "admin", "superadmin"]),
+  updateWorkExperience
 );
 router.get(
   "/work-experience/:id",
   authMiddleware(["freelancer", "admin", "superadmin"]),
-  getWorkExperience
+  getWorkExperiences
 );
 router.patch(
   "/work-experience",

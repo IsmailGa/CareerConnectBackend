@@ -1,11 +1,19 @@
 const { sequelize } = require("../../db/models");
-const { WorkExperience } = require("../../db/models/models");
+const { WorkExperience, Freelancer } = require("../../db/models/models");
 
 const fillWorkExperience = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { id, company, position, startDate, endDate, description } = req.body;
+    const { userId, company, position, startDate, endDate, description } =
+      req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        status: "error",
+        message: "Freelancer ID is required",
+      });
+    }
 
     if (!company && !position) {
       return res.status(400).json({
@@ -14,9 +22,22 @@ const fillWorkExperience = async (req, res) => {
       });
     }
 
+    const freelancer = await Freelancer.findOne({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (!freelancer) {
+      return res.status(404).json({
+        status: "error",
+        message: "Freelancer not found",
+      });
+    }
+
     await WorkExperience.create(
       {
-        freelancerId: id,
+        freelancerId: freelancer.id,
         company: company,
         position: position,
         startDate: startDate,
@@ -42,7 +63,7 @@ const fillWorkExperience = async (req, res) => {
   }
 };
 
-const getWorkExperience = async (req, res) => {
+const getWorkExperiences = async (req, res) => {
   const { id } = req.params;
 
   if (!id) {
@@ -52,14 +73,27 @@ const getWorkExperience = async (req, res) => {
     });
   }
 
+  const freelancer = await Freelancer.findOne({
+    where: {
+      userId: id,
+    },
+  });
+
+  if (!freelancer) {
+    return res.status(404).json({
+      status: "error",
+      message: "Freelancer not found",
+    });
+  }
+
   try {
-    const workExperience = await WorkExperience.findAll({
+    const workExperiences = await WorkExperience.findAll({
       where: {
-        freelancerId: id,
+        freelancerId: freelancer.id,
       },
     });
 
-    if (!workExperience) {
+    if (!workExperiences) {
       return res.status(404).json({
         status: "error",
         message: "Work experience not found",
@@ -68,7 +102,7 @@ const getWorkExperience = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      workExperience,
+      workExperiences: workExperiences,
     });
   } catch (error) {
     return res.status(500).json({
@@ -82,33 +116,39 @@ const updateWorkExperience = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { workId, fId, company, position, startDate, endDate, description } =
-      req.body;
+    const { company, position, startDate, endDate, description } = req.body;
+    const workId = req.params.id;
+
+    const user = req.user;
+
+    const freelancer = await Freelancer.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
 
     // Check if ID is provided
-    if (!id && !fId) {
+    if (!freelancer) {
       await transaction.rollback();
       return res.status(400).json({
         status: "error",
-        message: "IDs is required",
+        message: "there is no such freelancer",
       });
     }
 
     // Find the education record
-    const education = await WorkExperience.findByPk(
-      workId,
-      {
-        where: {
-          freelancerId: fId,
-        },
+    const workExperience = await WorkExperience.findOne({
+      where: {
+        id: workId,
+        freelancerId: freelancer.id,
       },
-      { transaction }
-    );
-    if (!education) {
+      transaction,
+    });
+    if (!workExperience) {
       await transaction.rollback();
       return res.status(404).json({
         status: "error",
-        message: "Education not found",
+        message: "Work experience not found",
       });
     }
 
@@ -116,7 +156,6 @@ const updateWorkExperience = async (req, res) => {
     const updates = {};
     if (company !== undefined) updates.company = company;
     if (position !== undefined) updates.position = position;
-    if (degree !== undefined) updates.degree = degree;
     if (startDate !== undefined) updates.startDate = startDate;
     if (endDate !== undefined) updates.endDate = endDate;
     if (description !== undefined) updates.description = description;
@@ -131,13 +170,13 @@ const updateWorkExperience = async (req, res) => {
     }
 
     // Perform the partial update
-    await education.update(updates, { transaction });
+    await workExperience.update(updates, { transaction });
 
     await transaction.commit();
 
     return res.status(200).json({
       success: true,
-      message: "Education updated successfully",
+      message: "Work experience updated successfully",
     });
   } catch (error) {
     await transaction.rollback();
@@ -183,7 +222,7 @@ const deleteWorkExperience = async (req, res) => {
 
 module.exports = {
   fillWorkExperience,
-  getWorkExperience,
+  getWorkExperiences,
   updateWorkExperience,
   deleteWorkExperience,
 };

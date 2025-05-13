@@ -5,6 +5,7 @@ const userRoutes = require("./routes/userRoutes");
 const vacancyRoutes = require("./routes/vacancyRouter");
 const employerRoutes = require("./routes/employerRoutes");
 const freelancerRoutes = require("./routes/freelancerRoutes");
+const applications = require("./routes/application");
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -24,6 +25,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/employers", employerRoutes);
 app.use("/api/v1/freelancers", freelancerRoutes);
 app.use("/api/v1/vacancies", vacancyRoutes);
+app.use("/api/v1/applications", applications);
 
 app.use("*", (req, res) => {
   res.status(404).json({ status: "fail", message: "Route not found" });
