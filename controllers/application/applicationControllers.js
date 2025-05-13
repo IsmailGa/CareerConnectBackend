@@ -122,7 +122,7 @@ const getVacancyApplications = async (req, res) => {
             {
               model: require("../../db/models/models").User,
               as: "user",
-              attributes: ["firstName", "lastName", "email"],
+              attributes: ["firstName", "lastName", "email", "phoneNumber"],
             },
           ],
         },
@@ -255,22 +255,22 @@ const getFreelancerApplications = async (req, res) => {
   }
 };
 
-const countCandidatesForVacancy = async (req, res) => {
-  const { vacancyId } = req.params;
+// const countCandidatesForVacancy = async (req, res) => {
+//   const { vacancyId } = req.params;
 
-  try {
-    const count = await Application.count({
-      where: { vacancyId },
-    });
-    return count;
-  } catch (error) {
-    console.error("Count candidates error:", error);
-    throw error;
-  }
-};
+//   try {
+//     const count = await Application.count({
+//       where: { vacancyId },
+//     });
+//     return count;
+//   } catch (error) {
+//     console.error("Count candidates error:", error);
+//     throw error;
+//   }
+// };
 
 module.exports = {
-  countCandidatesForVacancy,
+  // countCandidatesForVacancy,
   createApplication,
   getVacancyApplications,
   updateApplicationStatus,

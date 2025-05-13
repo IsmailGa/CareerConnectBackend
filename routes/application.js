@@ -4,7 +4,7 @@ const {
   getVacancyApplications,
   updateApplicationStatus,
   getFreelancerApplications,
-  countCandidatesForVacancy,
+  // countCandidatesForVacancy,
 } = require("../controllers/application/applicationControllers");
 const authMiddleware = require("../middleware/authMiddleware");
 
@@ -27,11 +27,11 @@ router.patch(
   updateApplicationStatus
 );
 
-router.get(
-  "/:vacancyId",
-  authMiddleware(["employer", "admin", "superadmin"]),
-  countCandidatesForVacancy
-);
+// router.get(
+//   "/:vacancyId",
+//   authMiddleware(["employer", "admin", "superadmin"]),
+//   countCandidatesForVacancy
+// );
 
 // Get freelancer's applications (freelancer superadmin admin only)
 router.get(
@@ -39,5 +39,5 @@ router.get(
   authMiddleware(["freelancer", "admin", "superadmin"]),
   getFreelancerApplications
 );
-  
+
 module.exports = router;
