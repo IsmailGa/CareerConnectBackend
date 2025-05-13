@@ -73,7 +73,6 @@ const fillInfoFreelancer = async (req, res) => {
 
   try {
     const {
-      id,
       position,
       skills = [],
       salary = null,
@@ -82,7 +81,21 @@ const fillInfoFreelancer = async (req, res) => {
       workPattern = null,
     } = req.body;
 
-    if (!position && !id) {
+    const user = req.user;
+
+    const freelancer = await Freelancer.findOne({
+      where: { userId: user.id },
+      transaction,
+    });
+
+    if (!freelancer) {
+      return res.status(404).json({
+        status: "error",
+        message: "Freelancer not found",
+      });
+    }
+
+    if (!position && !user.id) {
       return res.status(400).json({
         status: "error",
         message: "Didn't provided position and id",
@@ -99,7 +112,7 @@ const fillInfoFreelancer = async (req, res) => {
         workPattern: workPattern,
       },
       {
-        where: { id: id },
+        where: { userId: user.id },
         transaction,
       }
     );
@@ -108,7 +121,7 @@ const fillInfoFreelancer = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "The info about company filled succesfully",
+      message: "The info about freelancer filled succesfully",
     });
   } catch (error) {
     res.status(500).json({
@@ -155,15 +168,18 @@ const getFullFreelancerInfo = async (req, res) => {
       return res.status(400).json({ error: "Invalid freelancer ID" });
     }
 
-    const freelancer = await Freelancer.findByPk(id, {
+    const freelancer = await Freelancer.findOne({
+      where: { userId: id },
       include: [
         {
           model: User,
-          attributes: ["firstName", "lastName", "email"],
+          attributes: ["firstName", "lastName", "email", "phoneNumber"],
         },
         {
           model: WorkExperience,
+          as: "workExperiences",
           attributes: [
+            "id",
             "company",
             "position",
             "startDate",
@@ -173,7 +189,9 @@ const getFullFreelancerInfo = async (req, res) => {
         },
         {
           model: Education,
+          as: "education",
           attributes: [
+            "id",
             "placeName",
             "fieldOfStudy",
             "degree",

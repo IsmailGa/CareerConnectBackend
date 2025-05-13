@@ -1,12 +1,67 @@
 const { sequelize } = require("../../db/models");
-const { Education } = require("../../db/models/models");
+const { Education, Freelancer } = require("../../db/models/models");
+
+const getEducation = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        status: "error",
+        message: "Freelancer ID is required",
+      });
+    }
+
+    const freelancer = await Freelancer.findOne({
+      where: { userId: id },
+    });
+
+    if (!freelancer) {
+      return res.status(404).json({
+        status: "error",
+        message: "Freelancer not found",
+      });
+    }
+
+    const educations = await Education.findAll({
+      where: {
+        freelancerId: freelancer.id,
+      },
+    });
+
+    if (!educations || educations.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "No education records found for this freelancer",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      educations: educations,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 
 const fillEducation = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { id, placeName, fieldOfStudy, degree, startDate, endDate } =
-      req.body;
+    const { placeName, fieldOfStudy, degree, startDate, endDate } = req.body;
+    const user = req.user;
+    const { id } = user;
+
+    const freelancer = await Freelancer.findOne({
+      where: {
+        userId: id,
+      },
+    });
 
     if (!placeName && !fieldOfStudy && !degree) {
       return res.status(400).json({
@@ -17,7 +72,7 @@ const fillEducation = async (req, res) => {
 
     await Education.create(
       {
-        employerId: id,
+        freelancerId: freelancer.id,
         placeName: placeName,
         fieldOfStudy: fieldOfStudy,
         degree: degree,
@@ -140,6 +195,7 @@ const deleteEducation = async (req, res) => {
 };
 
 module.exports = {
+  getEducation,
   fillEducation,
   updateEducation,
   deleteEducation,
