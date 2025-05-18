@@ -233,6 +233,7 @@ const getFreelancerApplications = async (req, res) => {
               include: [
                 {
                   model: require("../../db/models/models").User,
+                  as: "user",
                   attributes: ["firstName", "lastName", "phoneNumber", "email"],
                 },
               ],
